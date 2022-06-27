@@ -31,6 +31,7 @@ class CartView(viewsets.ModelViewSet):
 
 
 
+
 class CartUserID(generics.GenericAPIView):
     def get(self,request,format=None,user_id=None):
         try:
@@ -47,3 +48,15 @@ class CartUserID(generics.GenericAPIView):
         except Exception as e:
             print(e)
             return Response(status=status.HTTP_404_NOT_FOUND,data=[])
+
+
+
+class TransactionBulkDelete(generics.GenericAPIView):
+    def get(self,request,format=None,user_id=None):
+        try:
+            Cart.objects.filter(user_id=user_id).delete()
+            return Response(data=[])
+        except Exception as e:
+            print(e)
+            return Response(status=status.HTTP_404_NOT_FOUND,data=[])
+

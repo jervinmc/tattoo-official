@@ -8,7 +8,7 @@ from users.views import Login,Artist
 from tattoo.views import TattooUserID,TattooMarket,TattooMarketArtist,CategoryDesign,TattooMostBuy
 from transaction.views import TransactionUserClientID,TransactionUserArtistID,TransactionPayMaya,TransactionBulkAdd
 from rest_framework import permissions
-from cart.views import CartUserID
+from cart.views import CartUserID,TransactionBulkDelete
 from design.views import DesignUserID
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -35,6 +35,7 @@ urlpatterns = [
     path('api/v1/tattoo-mostbuy/', TattooMostBuy.as_view(), name='get_user'),
     path('api/v1/transaction-paymaya/', TransactionPayMaya.as_view(), name='get_user'),
     path('api/v1/transaction-bulk/', TransactionBulkAdd.as_view(), name='get_user'),
+    path('api/v1/transaction-delete-cart/<str:user_id>/', TransactionBulkDelete.as_view(), name='get_user'),
     path('api/v1/login/', Login.as_view(), name='get_user'),
     path('api/v1/cart_user/<str:user_id>/', CartUserID.as_view(), name='get_user'),
 
