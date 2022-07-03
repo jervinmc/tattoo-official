@@ -5,12 +5,23 @@ from .serializers import DesignSerializer
 from rest_framework import filters
 from rest_framework import status, viewsets
 from rest_framework.response import Response
+from users.models import User
+from users.serializers import UserSerializer
 from category.models import Category
 from category.serializers import CategorySerializer
 class DesignView(viewsets.ModelViewSet):  
     filter_backends = [filters.SearchFilter]
     queryset=Design.objects.all()
     serializer_class=DesignSerializer
+
+    def list(self,request):
+        items = Design.objects.all()
+        items = DesignSerializer(items,many=True)
+        for x in items:
+            item = User.objects.filter(id=x['user_id'])
+            userData = UserSerializer(item,many=True)
+            print(userData)
+        return Response(data=items.data)
 
   
 
@@ -24,3 +35,4 @@ class DesignUserID(generics.GenericAPIView):
         except Exception as e:
             print(e)
             return Response(status=status.HTTP_404_NOT_FOUND,data=[])
+

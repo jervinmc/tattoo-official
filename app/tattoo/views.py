@@ -14,8 +14,7 @@ class TattooView(viewsets.ModelViewSet):
     search_fields = ['category','price','name','descriptions']
     queryset=Tattoo.objects.all()
     serializer_class=TattooSerializer
-
-  
+        
 
 class TattooUserID(generics.GenericAPIView):
     def get(self,request,format=None,user_id=None):
@@ -68,6 +67,12 @@ class TattooMostBuy(generics.GenericAPIView):
             print(user_id)
             tattoo = Tattoo.objects.all().order_by('-numAvail')
             serializers = TattooSerializer(tattoo,many=True)
+            for x in serializers.data:
+                user = User.objects.filter(id=x['user_id'])
+                user = UserSerializer(user,many=True)
+                x['email']= user.data[0]['email']
+                x['firstname']= user.data[0]['firstname']
+                x['lastname']= user.data[0]['lastname']
             return Response(data=serializers.data)
         except Exception as e:
             print(e)

@@ -9,6 +9,7 @@ import requests
 from tattoo.models import Tattoo
 from django.db.models import F
 from cart.models import Cart
+from datetime import datetime
 import json
 class TransactionView(viewsets.ModelViewSet):  
     filter_backends = [filters.SearchFilter]
@@ -17,11 +18,19 @@ class TransactionView(viewsets.ModelViewSet):
     serializer_class=TransactionSerializer
     def create(self,request):
         res = request.data
+
+        data = Transaction.objects.filter(artist_id=res.get('artist_id'),transaction_date__gte = res.get('transaction_date'),transaction_date__lte = res.get('transaction_date')).count()
+        if(data!=0):
+            return Response(data='Your selected date is already booked.')
+        # data = TransactionSerializer(data,many=True)
+        
+        # for x in data.data:
+        #     print(datetime.strptime(x['transaction_date'],'%Y-%m-%d'))
         Tattoo.objects.filter(id=res.get('design_id')).update(numAvail=F('numAvail')+1)
         serializer = TransactionSerializer(data=res)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(data=serializer.data)
+        return Response(data={})
 
 
 
