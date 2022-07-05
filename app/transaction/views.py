@@ -7,7 +7,9 @@ from rest_framework import status, viewsets
 from rest_framework.response import Response
 import requests
 from tattoo.models import Tattoo
-from django.db.models import F
+from django.db.models import F,Count
+from users.views import User
+from users.serializers import UserSerializer
 from cart.models import Cart
 from datetime import datetime
 import json
@@ -69,6 +71,22 @@ class TransactionUserClientID(generics.GenericAPIView):
         except Exception as e:
             print(e)
             return Response(status=status.HTTP_404_NOT_FOUND,data=[])
+
+
+class TopArtist(generics.GenericAPIView):
+    def get(self,request,format=None,user_id=None):
+        try:
+            userItem = User.objects.filter(account_type='Artist')
+            userItem = UserSerializer(userItem,many=True)
+            for x in userItem.data:
+                artistItem = Transaction.objects.filter(artist_id=x['id']).count()
+                x['numberOfTransaction'] = artistItem
+            items = sorted(userItem.data, key=lambda d: d['numberOfTransaction'],reverse=True)
+            return Response(data=items)
+        except Exception as e:
+            print(e)
+            return Response(status=status.HTTP_404_NOT_FOUND,data=[])
+
 
 class TransactionPayMaya(generics.GenericAPIView):
     def post(self,request,format=None):

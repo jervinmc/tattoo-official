@@ -6,7 +6,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from users.views import Login,Artist
 from tattoo.views import TattooUserID,TattooMarket,TattooMarketArtist,CategoryDesign,TattooMostBuy
-from transaction.views import TransactionUserClientID,TransactionUserArtistID,TransactionPayMaya,TransactionBulkAdd
+from transaction.views import TransactionUserClientID,TransactionUserArtistID,TransactionPayMaya,TransactionBulkAdd,TopArtist
 from rest_framework import permissions
 from cart.views import CartUserID,TransactionBulkDelete
 from design.views import DesignUserID
@@ -37,6 +37,7 @@ urlpatterns = [
     path('api/v1/transaction-bulk/', TransactionBulkAdd.as_view(), name='get_user'),
     path('api/v1/transaction-delete-cart/<str:user_id>/', TransactionBulkDelete.as_view(), name='get_user'),
     path('api/v1/login/', Login.as_view(), name='get_user'),
+    path('api/v1/top-artist/', TopArtist.as_view(), name='get_user'),
     path('api/v1/cart_user/<str:user_id>/', CartUserID.as_view(), name='get_user'),
 
 ]
