@@ -11,7 +11,8 @@ from django.db.models import F,Count
 from users.views import User
 from users.serializers import UserSerializer
 from cart.models import Cart
-from datetime import datetime
+from django.db.models import Q
+from datetime import datetime,timedelta
 import json
 class TransactionView(viewsets.ModelViewSet):  
     filter_backends = [filters.SearchFilter]
@@ -20,8 +21,9 @@ class TransactionView(viewsets.ModelViewSet):
     serializer_class=TransactionSerializer
     def create(self,request):
         res = request.data
-
-        data = Transaction.objects.filter(artist_id=res.get('artist_id'),transaction_date__gte = res.get('transaction_date'),transaction_date__lte = res.get('transaction_date')).count()
+        print(datetime.strptime(f"{res.get('transaction_date')}", "%Y-%m-%d %H:%M")+timedelta(minutes=30))
+        # print(datetime.strptime(f"{res.get('transaction_date')}", "%Y-%m-%d %H:%M"))
+        data = Transaction.objects.filter(Q(artist_id=res.get('artist_id')),Q(transaction_date__gte = datetime.strptime(f"{res.get('transaction_date')}", "%Y-%m-%d %H:%M")-timedelta(minutes=30) ),Q(transaction_date__lte = datetime.strptime(f"{res.get('transaction_date')}", "%Y-%m-%d %H:%M")+timedelta(minutes=30)) ).count()
         if(data!=0):
             return Response(data='Your selected date is already booked.')
         # data = TransactionSerializer(data,many=True)
@@ -76,13 +78,25 @@ class TransactionUserClientID(generics.GenericAPIView):
 class TopArtist(generics.GenericAPIView):
     def get(self,request,format=None,user_id=None):
         try:
-            userItem = User.objects.filter(account_type='Artist')
-            userItem = UserSerializer(userItem,many=True)
-            for x in userItem.data:
-                artistItem = Transaction.objects.filter(artist_id=x['id']).count()
-                x['numberOfTransaction'] = artistItem
-            items = sorted(userItem.data, key=lambda d: d['numberOfTransaction'],reverse=True)
-            return Response(data=items)
+            print(request.query_params.get('date'))
+            if(request.query_params.get('date')==''):
+               
+                userItem = User.objects.filter(account_type='Artist')
+                userItem = UserSerializer(userItem,many=True)
+                for x in userItem.data:
+                    artistItem = Transaction.objects.filter(artist_id=x['id']).count()
+                    x['numberOfTransaction'] = artistItem
+                items = sorted(userItem.data, key=lambda d: d['numberOfTransaction'],reverse=True)
+                return Response(data=items)
+            else:
+                print("yes")
+                userItem = User.objects.filter(account_type='Artist')
+                userItem = UserSerializer(userItem,many=True)
+                for x in userItem.data:
+                    artistItem = Transaction.objects.filter(artist_id=x['id'],transaction_date__gte=f'{request.query_params.get("date")} 00:00:00',transaction_date__lte=f'{request.query_params.get("date")} 23:59:00').count()
+                    x['numberOfTransaction'] = artistItem
+                items = sorted(userItem.data, key=lambda d: d['numberOfTransaction'],reverse=True)
+                return Response(data=items)
         except Exception as e:
             print(e)
             return Response(status=status.HTTP_404_NOT_FOUND,data=[])
