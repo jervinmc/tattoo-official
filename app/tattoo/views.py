@@ -8,7 +8,11 @@ from rest_framework.response import Response
 from category.models import Category
 from category.serializers import CategorySerializer
 from users.serializers import UserSerializer
+from tattoo.views import Tattoo
+from tattoo.serializers import TattooSerializer
 from users.models import User
+from transaction.models import Transaction
+from transaction.serializers import TransactionSerializer
 class TattooView(viewsets.ModelViewSet):  
     filter_backends = [filters.SearchFilter]
     search_fields = ['category','price','name','descriptions']
@@ -62,21 +66,68 @@ class TattooMarket(generics.GenericAPIView):
 
 
 class TattooMostBuy(generics.GenericAPIView):
-    def get(self,request,format=None,user_id=None):
-        try:
-            print(user_id)
-            tattoo = Tattoo.objects.all().order_by('-numAvail')
-            serializers = TattooSerializer(tattoo,many=True)
-            for x in serializers.data:
-                user = User.objects.filter(id=x['user_id'])
-                user = UserSerializer(user,many=True)
-                x['email']= user.data[0]['email']
-                x['firstname']= user.data[0]['firstname']
-                x['lastname']= user.data[0]['lastname']
-            return Response(data=serializers.data)
-        except Exception as e:
-            print(e)
-            return Response(status=status.HTTP_404_NOT_FOUND,data=[])
+    # def get(self,request,format=None,user_id=None):
+    #     try:
+    #         print(user_id)
+    #         tattoo = Tattoo.objects.all().order_by('-numAvail')
+    #         serializers = TattooSerializer(tattoo,many=True)
+    #         for x in serializers.data:
+    #             user = User.objects.filter(id=x['user_id'])
+    #             user = UserSerializer(user,many=True)
+    #             x['email']= user.data[0]['email']
+    #             x['firstname']= user.data[0]['firstname']
+    #             x['lastname']= user.data[0]['lastname']
+    #         return Response(data=serializers.data)
+    #     except Exception as e:
+    #         print(e)
+    #         return Response(status=status.HTTP_404_NOT_FOUND,data=[])
+
+    # class TattooMostBuy(generics.GenericAPIView):
+    # def get(self,request,format=None,user_id=None):
+        # try:
+        #     print(user_id)
+        #     product = Product.objects.all().order_by('-numBuy')
+        #     serializers = TransactionSerializer(transaction_items,many=True)
+        #     print(serializers.data)
+        #     return Response(data=serializers.data)
+        # except Exception as e:
+        #     print(e)
+        #     return Response(status=status.HTTP_404_NOT_FOUND,data=[])
+        def get(self,request,format=None,user_id=None):
+            print("yes1")
+            try:
+                
+                if(len(request.query_params.get('date').split(','))==2):
+                    listItem = request.query_params.get('date').split(',')
+                    userItem = Tattoo.objects.all()
+                    userItem = TattooSerializer(userItem,many=True)
+                    for x in userItem.data:
+                        artistItem = Transaction.objects.filter(design_id=x['id'],transaction_date__gte=f'{listItem[0]} 00:00:00',transaction_date__lte=f'{listItem[1]} 23:59:00').count()
+                        x['numberOfTransaction'] = artistItem
+                        print(artistItem)
+                    items = sorted(userItem.data, key=lambda d: d['numberOfTransaction'],reverse=True)
+                    return Response(data=items)
+
+                if(request.query_params.get('date')==''):
+                    userItem = Tattoo.objects.all()
+                    userItem = TattooSerializer(userItem,many=True)
+                    for x in userItem.data:
+                        artistItem = Transaction.objects.filter(design_id=x['id']).count()
+                        x['numberOfTransaction'] = artistItem
+                    items = sorted(userItem.data, key=lambda d: d['numberOfTransaction'],reverse=True)
+                    return Response(data=items)
+                else:
+                    print("yes")
+                    userItem = Tattoo.objects.all()
+                    userItem = TattooSerializer(userItem,many=True)
+                    for x in userItem.data:
+                        artistItem = Transaction.objects.filter(design_id=x['id'],transaction_date__gte=f'{request.query_params.get("date")} 00:00:00',transaction_date__lte=f'{request.query_params.get("date")} 23:59:00').count()
+                        x['numberOfTransaction'] = artistItem
+                    items = sorted(userItem.data, key=lambda d: d['numberOfTransaction'],reverse=True)
+                    return Response(data=items)
+            except Exception as e:
+                print(e)
+                return Response(status=status.HTTP_404_NOT_FOUND,data=[])
 
 
 class TattooMarketArtist(generics.GenericAPIView):

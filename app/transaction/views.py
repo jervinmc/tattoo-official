@@ -78,9 +78,17 @@ class TransactionUserClientID(generics.GenericAPIView):
 class TopArtist(generics.GenericAPIView):
     def get(self,request,format=None,user_id=None):
         try:
-            print(request.query_params.get('date'))
+            if(len(request.query_params.get('date').split(','))==2):
+                listItem = request.query_params.get('date').split(',')
+                userItem = User.objects.filter(account_type='Artist')
+                userItem = UserSerializer(userItem,many=True)
+                for x in userItem.data:
+                    artistItem = Transaction.objects.filter(artist_id=x['id'],transaction_date__gte=f'{listItem[0]} 00:00:00',transaction_date__lte=f'{listItem[1]} 23:59:00').count()
+                    x['numberOfTransaction'] = artistItem
+                items = sorted(userItem.data, key=lambda d: d['numberOfTransaction'],reverse=True)
+                return Response(data=items)
+
             if(request.query_params.get('date')==''):
-               
                 userItem = User.objects.filter(account_type='Artist')
                 userItem = UserSerializer(userItem,many=True)
                 for x in userItem.data:
