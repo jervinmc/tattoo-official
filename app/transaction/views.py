@@ -78,33 +78,52 @@ class TransactionUserClientID(generics.GenericAPIView):
 class TopArtist(generics.GenericAPIView):
     def get(self,request,format=None,user_id=None):
         try:
+            isHave = False
             if(len(request.query_params.get('date').split(','))==2):
+                
                 listItem = request.query_params.get('date').split(',')
                 userItem = User.objects.filter(account_type='Artist')
                 userItem = UserSerializer(userItem,many=True)
                 for x in userItem.data:
                     artistItem = Transaction.objects.filter(artist_id=x['id'],transaction_date__gte=f'{listItem[0]} 00:00:00',transaction_date__lte=f'{listItem[1]} 23:59:00').count()
                     x['numberOfTransaction'] = artistItem
+                    if(artistItem!=0):
+                        isHave = True
                 items = sorted(userItem.data, key=lambda d: d['numberOfTransaction'],reverse=True)
-                return Response(data=items)
+                if(isHave):
+                        return Response(data=items)
+                else:
+                    return Response(data=[])
 
             if(request.query_params.get('date')==''):
+                
                 userItem = User.objects.filter(account_type='Artist')
                 userItem = UserSerializer(userItem,many=True)
                 for x in userItem.data:
                     artistItem = Transaction.objects.filter(artist_id=x['id']).count()
                     x['numberOfTransaction'] = artistItem
+                    if(artistItem!=0):
+                        isHave = True
+                
                 items = sorted(userItem.data, key=lambda d: d['numberOfTransaction'],reverse=True)
-                return Response(data=items)
+                if(isHave):
+                    return Response(data=items)
+                else:
+                    return Response(data=[])
             else:
-                print("yes")
                 userItem = User.objects.filter(account_type='Artist')
                 userItem = UserSerializer(userItem,many=True)
                 for x in userItem.data:
                     artistItem = Transaction.objects.filter(artist_id=x['id'],transaction_date__gte=f'{request.query_params.get("date")} 00:00:00',transaction_date__lte=f'{request.query_params.get("date")} 23:59:00').count()
                     x['numberOfTransaction'] = artistItem
+                    if(artistItem!=0):
+                        isHave = True
                 items = sorted(userItem.data, key=lambda d: d['numberOfTransaction'],reverse=True)
-                return Response(data=items)
+                if(isHave):
+                    return Response(data=items)
+                else:
+                    return Response(data=[])
+
         except Exception as e:
             print(e)
             return Response(status=status.HTTP_404_NOT_FOUND,data=[])
