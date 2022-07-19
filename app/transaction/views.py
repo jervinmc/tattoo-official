@@ -21,9 +21,9 @@ class TransactionView(viewsets.ModelViewSet):
     serializer_class=TransactionSerializer
     def create(self,request):
         res = request.data
-        print(datetime.strptime(f"{res.get('transaction_date')}", "%Y-%m-%d %H:%M")+timedelta(minutes=30))
+        print(datetime.strptime(f"{res.get('transaction_date')}", "%Y-%m-%d %H:%M")+timedelta(minutes=60))
         # print(datetime.strptime(f"{res.get('transaction_date')}", "%Y-%m-%d %H:%M"))
-        data = Transaction.objects.filter(Q(artist_id=res.get('artist_id')),Q(transaction_date__gte = datetime.strptime(f"{res.get('transaction_date')}", "%Y-%m-%d %H:%M")-timedelta(minutes=30) ),Q(transaction_date__lte = datetime.strptime(f"{res.get('transaction_date')}", "%Y-%m-%d %H:%M")+timedelta(minutes=30)) ).count()
+        data = Transaction.objects.filter(Q(artist_id=res.get('artist_id')),Q(transaction_date__gte = datetime.strptime(f"{res.get('transaction_date')}", "%Y-%m-%d %H:%M")-timedelta(minutes=60) ),Q(transaction_date__lte = datetime.strptime(f"{res.get('transaction_date')}", "%Y-%m-%d %H:%M")+timedelta(minutes=60)) ).count()
         if(data!=0):
             return Response(data='Your selected date is already booked.')
         # data = TransactionSerializer(data,many=True)
